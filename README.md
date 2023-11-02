@@ -1,4 +1,4 @@
-## This is a tensor flow js-based artificial intelligence model for analyzing LED spectra
+## This is a tensor flow js-based artificial intelligence model for analyzing LED spectrum
 
 To run the model, write:
 
