@@ -6,10 +6,12 @@ async function makePrediction(model, inputShape, inputData) {
 
     const predictedClass = (await prediction.argMax(1).data())[0]; // Клас з найвищою вірогідністю
     console.log("Прогнозований клас:", predictedClass);
+    
 
-    // Не забудьте вивільнити ресурси після використання
+    //Вивільняємо ресурси після використання
     inputSample.dispose();
     prediction.dispose();
+    return predictedClass
 }
 
 export default makePrediction
