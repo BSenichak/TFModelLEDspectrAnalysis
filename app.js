@@ -47,6 +47,18 @@ app.post("/predict", function (req, res) {
     });
 });
 
+app.post("/check", function (req, res) {
+    let data = "";
+    req.on("data", (chunk) => {
+        data += chunk;
+    });
+    req.on("end", async () => {
+        data = JSON.parse(data);
+        if(data) data.status = "ok"
+        res.send(JSON.stringify({data}));
+    });
+});
+
 app.listen(3000, () => {
     console.log("Server on port", 3000);
 });
