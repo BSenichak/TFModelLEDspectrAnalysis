@@ -27,6 +27,12 @@ fitModel(
 
 const app = express();
 
+app.use("/*", (req, res, next)=>{
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Headers", "*")
+    next()
+})
+
 app.post("/predict", function (req, res) {
     let data = "";
     req.on("data", (chunk) => {
@@ -55,7 +61,7 @@ app.post("/check", function (req, res) {
     req.on("end", async () => {
         data = JSON.parse(data);
         if(data) data.status = "ok"
-        res.send(JSON.stringify({data}));
+        res.send(JSON.stringify(data));
     });
 });
 
