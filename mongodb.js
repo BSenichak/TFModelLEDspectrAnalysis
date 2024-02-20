@@ -1,5 +1,4 @@
-// const { MongoClient, ServerApiVersion } = require('mongodb');
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
 const uri =
     "mongodb+srv://admin:admin12345@cluster0.onhl1ub.mongodb.net/?retryWrites=true&w=majority";
 
@@ -82,6 +81,36 @@ export async function addNewLed(data) {
         return result;
     } finally {
         client.close();
+    }
+}
+
+export async function addNewTensor(data) {
+    try {
+        let _id = data._id;
+        let tensor = data.tensor;
+        console.log(_id, tensor);
+        if (_id && tensor) {
+            await client.connect();
+            let db = client.db("Leds");
+            const Leds = db.collection("Leds");
+            const filter = { _id: new ObjectId(_id) };
+            const update = {
+                $push: {
+                    tensors: tensor,
+                },
+            };
+            console.log("Search result:", await Leds.findOne(filter));
+            const result = await Leds.updateOne(filter, update);
+            return result;
+        }
+        return "";
+    } catch (error) {
+        console.error("Error updating document:", error);
+        return error;
+    } finally {
+        if (client && client.topology && client.topology.isConnected()) {
+            await client.close();
+        }
     }
 }
 

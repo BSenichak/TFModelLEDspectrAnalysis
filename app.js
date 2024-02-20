@@ -7,6 +7,7 @@ import fitModel from "./fitModel/fitModel.js";
 import express from "express";
 import mongodb, {
     addNewLed,
+    addNewTensor,
     getAllLeds,
     getAllLedsNames,
     run,
@@ -37,7 +38,6 @@ fitModel(
     numEpochs
 ).then(() => {
     isTFReady = true;
-    console.log("tf is ready", isTFReady)
 });
 
 // ! Express model
@@ -47,7 +47,6 @@ const app = express();
 app.use("/*", (req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "*");
-    if (!isTFReady && !isDBReady) res.end("system is not ready");
     next();
 });
 
@@ -97,6 +96,22 @@ app.post("/addLed", function (req, res) {
         }
         data = JSON.parse(data);
         let result = await addNewLed(data);
+        res.end(JSON.stringify(result));
+    });
+});
+
+app.post("/addTensor", function (req, res) {
+    let data = "";
+    req.on("data", (chunk) => {
+        data += chunk;
+    });
+    req.on("end", async () => {
+        if (!data) {
+            res.end();
+            return;
+        }
+        data = JSON.parse(data);
+        let result = await addNewTensor(data);
         res.end(JSON.stringify(result));
     });
 });
