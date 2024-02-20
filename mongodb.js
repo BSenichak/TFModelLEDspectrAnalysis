@@ -65,7 +65,7 @@ export async function getAllLedsNames() {
             return {
                 name: i.name,
                 id: i._id,
-                tensorsCount: i.tensor.length,
+                tensorsCount: i.tensors.length,
             };
         });
         return names;
