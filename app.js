@@ -5,13 +5,25 @@ import randomDataGenerator from "./trainingData/randomDataGenerator.js";
 import makePrediction from "./prediction/makePrediction.js";
 import fitModel from "./fitModel/fitModel.js";
 import express from "express";
+import mongodb, {
+    addNewLed,
+    getAllLeds,
+    getAllLedsNames,
+    run,
+} from "./mongodb.js";
 
+let isTFReady = false;
+let isDBReady = false;
+
+// ! MongoDB model
+
+isDBReady = await run().catch(console.dir);
+
+// ! tfModel
 const numSamples = 1000;
 const inputShape = 10;
 const numClasses = 5;
-
 const model = TFModel(inputShape, numClasses);
-
 const [trainData, trainLabels, validationData, validationLabels] =
     randomDataGenerator(numSamples, inputShape, numClasses);
 
@@ -23,15 +35,21 @@ fitModel(
     validationData,
     validationLabels,
     numEpochs
-).then(() => console.log("TF DONE"));
+).then(() => {
+    isTFReady = true;
+    console.log("tf is ready", isTFReady)
+});
+
+// ! Express model
 
 const app = express();
 
-app.use("/*", (req, res, next)=>{
-    res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader("Access-Control-Allow-Headers", "*")
-    next()
-})
+app.use("/*", (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    if (!isTFReady && !isDBReady) res.end("system is not ready");
+    next();
+});
 
 app.post("/predict", function (req, res) {
     let data = "";
@@ -44,11 +62,13 @@ app.post("/predict", function (req, res) {
         if (tensor) {
             let classNumber = await makePrediction(model, inputShape, tensor);
             res.send(JSON.stringify(classNumber));
-        }else{
-            res.status(400)
-            res.send(JSON.stringify({
-                error: "Wrong tensor"
-            }))
+        } else {
+            res.status(400);
+            res.send(
+                JSON.stringify({
+                    error: "Wrong tensor",
+                })
+            );
         }
     });
 });
@@ -60,9 +80,33 @@ app.post("/check", function (req, res) {
     });
     req.on("end", async () => {
         data = JSON.parse(data);
-        if(data) data.status = "ok"
+        if (data) data.status = "ok";
         res.send(JSON.stringify(data));
     });
+});
+
+app.post("/addLed", function (req, res) {
+    let data = "";
+    req.on("data", (chunk) => {
+        data += chunk;
+    });
+    req.on("end", async () => {
+        if (!data) {
+            res.end();
+            return;
+        }
+        data = JSON.parse(data);
+        let result = await addNewLed(data);
+        res.end(JSON.stringify(result));
+    });
+});
+
+app.get("/getallleds", async function (req, res) {
+    res.end(JSON.stringify(await getAllLeds()));
+});
+
+app.get("/getallledsnames", async function (req, res) {
+    res.end(JSON.stringify(await getAllLedsNames()));
 });
 
 app.listen(3000, () => {
