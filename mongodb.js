@@ -114,4 +114,22 @@ export async function addNewTensor(data) {
     }
 }
 
+export async function getOneLed(_id) {
+    try {
+        await client.connect();
+        let db = client.db("Leds");
+        const Leds = db.collection("Leds");
+        const filter = { _id: new ObjectId(_id) };
+        let result = await Leds.findOne(filter);
+        return result;
+    } catch (error) {
+        console.error("Error updating document:", error);
+        return error;
+    } finally {
+        if (client && client.topology && client.topology.isConnected()) {
+            await client.close();
+        }
+    }
+}
+
 export default client;

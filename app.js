@@ -10,6 +10,7 @@ import mongodb, {
     addNewTensor,
     getAllLeds,
     getAllLedsNames,
+    getOneLed,
     run,
 } from "./mongodb.js";
 
@@ -22,7 +23,7 @@ isDBReady = await run().catch(console.dir);
 
 // ! tfModel
 const numSamples = 1000;
-const inputShape = 10;
+const inputShape = 100;
 const numClasses = 5;
 const model = TFModel(inputShape, numClasses);
 const [trainData, trainLabels, validationData, validationLabels] =
@@ -122,6 +123,14 @@ app.get("/getallleds", async function (req, res) {
 
 app.get("/getallledsnames", async function (req, res) {
     res.end(JSON.stringify(await getAllLedsNames()));
+});
+
+app.get("/getoneled", async function (req, res) {
+    let id = req.query._id;
+    if (id) {
+        let result = await getOneLed(id);
+        res.end(JSON.stringify(result));
+    }
 });
 
 app.listen(3000, () => {
