@@ -13,6 +13,9 @@ import mongodb, {
     getOneLed,
     run,
 } from "./mongodb.js";
+import fs from "fs";
+import path from "path";
+const __dirname = path.resolve();
 
 let isTFReady = false;
 let isDBReady = false;
@@ -22,24 +25,57 @@ let isDBReady = false;
 isDBReady = await run().catch(console.dir);
 
 // ! tfModel
-const numSamples = 1000;
-const inputShape = 100;
-const numClasses = 5;
-const model = TFModel(inputShape, numClasses);
-const [trainData, trainLabels, validationData, validationLabels] =
-    randomDataGenerator(numSamples, inputShape, numClasses);
 
-const numEpochs = 50;
-fitModel(
-    model,
-    trainData,
-    trainLabels,
-    validationData,
-    validationLabels,
-    numEpochs
-).then(() => {
-    isTFReady = true;
-});
+async function getDataToTensor() {
+    let data = await getAllLeds();
+    let validTensors = data.filter((i) => i.tensors.length >= 50);
+    let tensors = validTensors.map((i) => i.tensors);
+    let names = validTensors.map((i) => i.name);
+    return { tensors, names };
+}
+let inputShape = [ 50, 100, 3]
+
+async function fit() {
+    try {
+        let { tensors, names } = await getDataToTensor();
+        let labels = []
+        let canals = [1, 2]
+        let colors = []
+        for(let i = 0; i < 100; i++) {
+            colors.push(canals)
+        }
+        let examples = []
+        for(let i = 0; i < 50; i++) {
+            examples.push(colors)
+        }
+        for(let i = 0; i < names.length; i++) {
+            labels.push(examples)
+        }
+        let numClasses = tensors.length;
+        
+        let trainLabels = tf.tensor4d(labels)
+
+        let trainData =  tf.tensor4d(tensors)
+        let model = TFModel(inputShape, numClasses);
+        const numEpochs = 50;
+        await fitModel(
+            model,
+            trainData,
+            trainLabels,
+            trainData,
+            trainLabels,
+            numEpochs
+        ).then(() => {
+            isTFReady = true;
+        });
+        return model
+        
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+let model = await fit();
+
 
 // ! Express model
 

@@ -1,4 +1,5 @@
 const fitModel = async (model, trainData, trainLabels, validationData, validationLabels, numEpochs) => {
+    
     await model
         .fit(trainData, trainLabels, {
             epochs: numEpochs,
