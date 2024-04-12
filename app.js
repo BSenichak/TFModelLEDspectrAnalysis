@@ -30,32 +30,33 @@ async function getDataToTensor() {
     let data = await getAllLeds();
     let validTensors = data.filter((i) => i.tensors.length >= 50);
     let tensors = validTensors.map((i) => i.tensors);
-    let names = validTensors.map((i) => i.name);
-    return { tensors, names };
+    let ids = validTensors.map((i) => i._id);
+    console.log(ids);
+    return { tensors, ids };
 }
-let inputShape = [ 50, 100, 3]
+let inputShape = [50, 100, 3];
 
 async function fit() {
     try {
-        let { tensors, names } = await getDataToTensor();
-        let labels = []
-        let canals = [1, 2]
-        let colors = []
-        for(let i = 0; i < 100; i++) {
-            colors.push(canals)
+        let { tensors, ids } = await getDataToTensor();
+        let labels = [];
+        let canals = [1, 2];
+        let colors = [];
+        for (let i = 0; i < 100; i++) {
+            colors.push(canals);
         }
-        let examples = []
-        for(let i = 0; i < 50; i++) {
-            examples.push(colors)
+        let examples = [];
+        for (let i = 0; i < 50; i++) {
+            examples.push(colors);
         }
-        for(let i = 0; i < names.length; i++) {
-            labels.push(examples)
+        for (let i = 0; i < ids.length; i++) {
+            labels.push(examples);
         }
         let numClasses = tensors.length;
-        
-        let trainLabels = tf.tensor4d(labels)
 
-        let trainData =  tf.tensor4d(tensors)
+        let trainLabels = tf.tensor4d(labels);
+
+        let trainData = tf.tensor4d(tensors);
         let model = TFModel(inputShape, numClasses);
         const numEpochs = 50;
         await fitModel(
@@ -68,14 +69,12 @@ async function fit() {
         ).then(() => {
             isTFReady = true;
         });
-        return model
-        
+        return { model, ids };
     } catch (error) {
         console.error(error.message);
     }
 }
-let model = await fit();
-
+let { model, ids } = await fit();
 
 // ! Express model
 
@@ -95,9 +94,17 @@ app.post("/predict", function (req, res) {
     req.on("end", async () => {
         data = JSON.parse(data);
         let tensor = data.tensor;
-        if (tensor) {
+        if (!isTFReady) {
+            res.status(200);
+            res.send(
+                JSON.stringify({
+                    error: "Model is not ready",
+                })
+            );
+        } else if (tensor) {
             let classNumber = await makePrediction(model, inputShape, tensor);
-            res.send(JSON.stringify(classNumber));
+            let result = await getOneLed(ids[classNumber]);
+            res.send(JSON.stringify(result));
         } else {
             res.status(400);
             res.send(
