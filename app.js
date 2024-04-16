@@ -1,10 +1,7 @@
 // const tf = require("@tensorflow/tfjs-node");
-import * as tf from "@tensorflow/tfjs";
-import TFModel from "./TFmodel/TFModel.js";
-import randomDataGenerator from "./trainingData/randomDataGenerator.js";
 import makePrediction from "./prediction/makePrediction.js";
-import fitModel from "./fitModel/fitModel.js";
 import express from "express";
+import fit from "./trainingData/fit.js";
 import mongodb, {
     addNewLed,
     addNewTensor,
@@ -13,70 +10,13 @@ import mongodb, {
     getOneLed,
     run,
 } from "./mongodb.js";
-import fs from "fs";
-import path from "path";
-const __dirname = path.resolve();
 
 let isTFReady = false;
 let isDBReady = false;
 
-// ! MongoDB model
-
 isDBReady = await run().catch(console.dir);
-
-// ! tfModel
-
-async function getDataToTensor() {
-    let data = await getAllLeds();
-    let validTensors = data.filter((i) => i.tensors.length >= 50);
-    let tensors = validTensors.map((i) => i.tensors);
-    let ids = validTensors.map((i) => i._id);
-    console.log(ids);
-    return { tensors, ids };
-}
-let inputShape = [50, 100, 3];
-
-async function fit() {
-    try {
-        let { tensors, ids } = await getDataToTensor();
-        let labels = [];
-        let canals = [1, 2];
-        let colors = [];
-        for (let i = 0; i < 100; i++) {
-            colors.push(canals);
-        }
-        let examples = [];
-        for (let i = 0; i < 50; i++) {
-            examples.push(colors);
-        }
-        for (let i = 0; i < ids.length; i++) {
-            labels.push(examples);
-        }
-        let numClasses = tensors.length;
-
-        let trainLabels = tf.tensor4d(labels);
-
-        let trainData = tf.tensor4d(tensors);
-        let model = TFModel(inputShape, numClasses);
-        const numEpochs = 50;
-        await fitModel(
-            model,
-            trainData,
-            trainLabels,
-            trainData,
-            trainLabels,
-            numEpochs
-        ).then(() => {
-            isTFReady = true;
-        });
-        return { model, ids };
-    } catch (error) {
-        console.error(error.message);
-    }
-}
-let { model, ids } = await fit();
-
-// ! Express model
+let { model, ids, inputShape, ready } = await fit();
+isTFReady = ready;
 
 const app = express();
 
