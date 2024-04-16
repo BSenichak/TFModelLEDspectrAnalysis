@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon app.js",
-    "test": "node --watch app.js"
+    "test": "node --watch app.js",
+    "start": "node app.js"
   },
   "author": "Bsenichak",
   "license": "ISC",
