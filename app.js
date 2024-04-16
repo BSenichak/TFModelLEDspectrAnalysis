@@ -9,6 +9,7 @@ import mongodb, {
     getAllLedsNames,
     getOneLed,
     run,
+    updateData,
 } from "./mongodb.js";
 
 let isTFReady = false;
@@ -96,6 +97,23 @@ app.post("/addTensor", function (req, res) {
         }
         data = JSON.parse(data);
         let result = await addNewTensor(data);
+        res.end(JSON.stringify(result));
+    });
+});
+
+app.post("/updateleddata", function (req, res) {
+    let data = "";
+    req.on("data", (chunk) => {
+        data += chunk;
+    });
+    req.on("end", async () => {
+        if (!data) {
+            res.end();
+            return;
+        }
+        data = JSON.parse(data);
+        await updateData(data._id, data);
+        let result = await getOneLed(data._id);
         res.end(JSON.stringify(result));
     });
 });

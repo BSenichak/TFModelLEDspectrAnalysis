@@ -65,6 +65,7 @@ export async function getAllLedsNames() {
                 name: i.name,
                 id: i._id,
                 tensorsCount: i.tensors.length,
+                img: i.img
             };
         });
         return names;
@@ -131,5 +132,31 @@ export async function getOneLed(_id) {
         }
     }
 }
+
+export async function updateData(_id, data) {
+    try {
+        await client.connect();
+        let db = client.db("Leds");
+        const Leds = db.collection("Leds");
+        const filter = { _id: new ObjectId(_id) };
+        const update = {
+            $set: {
+                name: data.name,
+                description: data.description,
+                img: data.img
+            },
+        };
+        const result = await Leds.updateOne(filter, update);
+        return result;
+    } catch (error) {
+        console.error("Error updating document:", error);
+        return error;
+    } finally {
+        if (client && client.topology && client.topology.isConnected()) {
+            await client.close();
+        }
+    }
+}
+
 
 export default client;
