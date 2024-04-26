@@ -35,9 +35,6 @@ export async function getAllLeds() {
                     console.error("Error finding documents:", err);
                     return;
                 }
-
-                console.log("Documents:", documents);
-
                 client.close();
             });
         return Leds;
@@ -89,7 +86,6 @@ export async function addNewTensor(data) {
     try {
         let _id = data._id;
         let tensor = data.tensor;
-        console.log(_id, tensor);
         if (_id && tensor) {
             await client.connect();
             let db = client.db("Leds");
@@ -100,7 +96,6 @@ export async function addNewTensor(data) {
                     tensors: tensor,
                 },
             };
-            console.log("Search result:", await Leds.findOne(filter));
             const result = await Leds.updateOne(filter, update);
             return result;
         }

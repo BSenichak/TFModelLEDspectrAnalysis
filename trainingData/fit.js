@@ -16,7 +16,7 @@ async function fit() {
     try {
         let { tensors, ids } = await getDataToTensor();
         let labels = [];
-        let canals = [1, 2];
+        let canals = [1, 2, 3, 4, 5, 6, 7, 8, 9];
         let colors = [];
         for (let i = 0; i < 100; i++) {
             colors.push(canals);
@@ -35,7 +35,7 @@ async function fit() {
 
         let trainData = tf.tensor3d(tensors.flat(1));
         let model = TFModel(inputShape, numClasses);
-        const numEpochs = 50;
+        const numEpochs = 1;
         await fitModel(
             model,
             trainData,
@@ -46,6 +46,7 @@ async function fit() {
         ).then(() => {
             console.log("Model was fitted");
         });
+        console.log(ids)
         return { model, ids, inputShape, ready: true };
     } catch (error) {
         console.error(error.message);

@@ -16,6 +16,8 @@ let isTFReady = false;
 let isDBReady = false;
 
 isDBReady = await run().catch(console.dir);
+// await fit()
+// let ready = true
 let { model, ids, inputShape, ready } = await fit();
 isTFReady = ready;
 
@@ -43,7 +45,7 @@ app.post("/predict", function (req, res) {
                 })
             );
         } else if (tensor) {
-            let classNumber = await makePrediction(model, inputShape, tensor);
+            let classNumber = await makePrediction(model, inputShape, tensor, ids.length);
             let result = await getOneLed(ids[classNumber]);
             res.send(JSON.stringify(result));
         } else {
