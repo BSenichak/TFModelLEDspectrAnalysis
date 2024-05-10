@@ -14,9 +14,14 @@ let inputShape = [100, 3];
 
 async function fit() {
     try {
+        let startTime = Date.now();
         let { tensors, ids } = await getDataToTensor();
+        let numClasses = tensors.length;
         let labels = [];
-        let canals = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let canals = [];
+        for(let i = 1; i <= numClasses; i++){
+            canals.push(i);
+        }
         let colors = [];
         for (let i = 0; i < 100; i++) {
             colors.push(canals);
@@ -26,16 +31,14 @@ async function fit() {
             examples.push(colors);
         }
         for (let i = 0; i < ids.length; i++) {
-            // labels.push(examples);
             labels = [...labels, ...examples];
         }
-        let numClasses = tensors.length;
 
         let trainLabels = tf.tensor3d(labels);
 
         let trainData = tf.tensor3d(tensors.flat(1));
         let model = TFModel(inputShape, numClasses);
-        const numEpochs = 1;
+        const numEpochs = 50;
         await fitModel(
             model,
             trainData,
@@ -46,7 +49,8 @@ async function fit() {
         ).then(() => {
             console.log("Model was fitted");
         });
-        console.log(ids)
+        console.log("Classes: ",ids.length);
+        console.log("Time for training:", (Date.now() - startTime) / 1000, "s");
         return { model, ids, inputShape, ready: true };
     } catch (error) {
         console.error(error.message);
