@@ -19,8 +19,6 @@ let isDBReady = false;
 isDBReady = await run().catch(console.dir);
 // await fit()
 // let ready = true
-let { model, ids, inputShape, ready } = await fit();
-isTFReady = ready;
 
 const app = express();
 
@@ -142,3 +140,6 @@ app.listen(3000, () => {
 });
 
 
+
+let { model, ids, inputShape, ready } = await fit();
+isTFReady = ready;
